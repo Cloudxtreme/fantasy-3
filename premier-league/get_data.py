@@ -5,8 +5,6 @@ from itertools import product
 from pylearn2.utils import serial
 
 
-
-
 element_filter = {'te_1': 'Arsenal',
                   'te_2': 'Aston Villa',
                   'te_3': 'Bournemouth',
@@ -46,19 +44,61 @@ stat_filter = {'total_points': 'Total score',
                'bonus': 'Bonus',
                'ea_index': 'EA SPORTS PPI',
                'bps': 'Bonus Points System',
-               'form': 'Form',
                'dreamteam_count': 'Times in Dream Team',
-               'value_form': 'Value (form)',
-               'value_season': 'Value (season)',
-               'points_per_game': 'Points per game',
                'transfers_in': 'Transfers in',
-               'transfers_out': 'Transfers out',
-               'transfers_in_event': 'Transfers in (round)',
-               'transfers_out_event': 'Transfers out (round)',}
-#                'cost_change_start': 'Price rise',
-#                'cost_change_start_fall': 'Price fall',
-#                'cost_change_event': 'Price rise (round)',
-#                'cost_change_event_fall': 'Price fall (round)',}
+               'transfers_out': 'Transfers out',}
+
+data_types = {'Player': str,
+              'Team': str,
+              'Position': str,
+              'Gameweek points': int,
+              'Total points': int,
+              'Minutes played': int,
+              'Goals scored': int,
+              'Assists': int,
+              'Clean sheets': int,
+              'Yellow cards': int,
+              'Red cards': int,
+              'EA SPORTS PPI': int,
+              'Bonus': int,
+              'Bonus Points System': int,
+              'Own goals': int,
+              'Goals conceded': int,
+              'Times in Dream Team': int,
+              'Transfers in': int,
+              'Transfers out': int,
+              'Penalties saved': int,
+              'Penalties missed': int,
+              'Saves': int,}
+
+# Teams selected by %
+# Price
+
+data_header = ['ID',
+               'Price',
+               'Teams selected by %',
+               'Player',
+               'Team',
+               'Position',
+               'Gameweek points',
+               'Total points',
+               'Minutes played',
+               'Goals scored',
+               'Assists',
+               'Clean sheets',
+               'Yellow cards',
+               'Red cards',
+               'EA SPORTS PPI',
+               'Bonus',
+               'Bonus Points System',
+               'Own goals',
+               'Goals conceded',
+               'Times in Dream Team',
+               'Transfers in',
+               'Transfers out',
+               'Penalties saved',
+               'Penalties missed',
+               'Saves',]
 
 
 class Data(object):
@@ -67,12 +107,25 @@ class Data(object):
         self.data = dict()
         
     def add_data_block(self, playerID, header, content):
-#         assert len(header)==(len(content)-1)
         state = self.data[playerID] if self.data.has_key(playerID) else {}
-        newInfo = {h: c for h, c in zip(header, content)}
-        state.update(newInfo)
+        state.update({h: c for h, c in zip(header, content)})
         self.data[playerID] = state
     
+    def get_data_table(self, row_major=True):
+        
+        DataAsList = [[playerID, 
+                       float(self.data[playerID]['Price'][2:]), 
+                       float(self.data[playerID]['Teams selected by %'][:-1])] + [value(self.data[playerID][key]) for key, value in data_types.items()] 
+                      for playerID in self.data]
+        
+        if row_major: return DataAsList
+        else:
+            return [[DataAsList[i,j] for i in range(len(DataAsList))] for j in range(len(DataAsList[0]))]
+            
+        
+        
+    
+        
 
 
 def ParseContentBlock(block):
@@ -100,10 +153,6 @@ if __name__=="__main__":
     
     urlpath = 'http://fantasy.premierleague.com/stats/elements/'
     
-    ef = 'te_1'
-    sf = 'assists' 
-    
-    """
     t = time.time()    
     for ef, sf, page in product(element_filter, stat_filter, range(2)):
         _urlpath = urlpath+'?element_filter='+ef+'&stat_filter='+sf+'&page='+str(page+1)
@@ -142,12 +191,6 @@ if __name__=="__main__":
     
     print "Total time: ", time.time() - t
     
-    """
-    
-    Database = serial.load('Database.pkl')
-    print len(Database.data.keys())
-    for key in Database.data[1]:
-        print key
     
     
     
